@@ -1,9 +1,9 @@
 import streamlit as st
-from transformers import AutoTokenizer, TFAutoModelForCausalLM, pipeline  # TensorFlow version
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline  # PyTorch version
 import nltk
 import os
 import tempfile
-import tensorflow as tf
+import torch  # Explicit PyTorch import
 
 # 1. NLTK Data Path (using tempfile)
 try:
@@ -30,20 +30,14 @@ except LookupError:
 def load_mistral_model():
     HF_AUTH_TOKEN = st.secrets.get("HF_AUTH_TOKEN")
 
-    # Debugging: Print token and length (remove after testing)
-    st.write(f"HF_AUTH_TOKEN (len: {len(HF_AUTH_TOKEN) if HF_AUTH_TOKEN else 0}): '{HF_AUTH_TOKEN}'")
-
     if not HF_AUTH_TOKEN:
         st.error("HF_AUTH_TOKEN secret not found or incorrect. Please set it in Streamlit Cloud (no spaces!).")
         return None
 
     try:
-        # Import torch ONLY inside this function (for transformers dependency):
-        import torch  # This is crucial, even with TensorFlow
-
         tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-Small-24B-Instruct-2501", token=HF_AUTH_TOKEN)
-        model = TFAutoModelForCausalLM.from_pretrained("mistralai/Mistral-Small-24B-Instruct-2501", token=HF_AUTH_TOKEN)
-        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)  # No device_map or torch_dtype for TensorFlow
+        model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-Small-24B-Instruct-2501", device_map="auto", torch_dtype=torch.bfloat16, token=HF_AUTH_TOKEN)
+        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto", torch_dtype=torch.bfloat16)
         return pipe
     except Exception as e:
         st.error(f"Error loading Mistral model: {e}")
@@ -94,4 +88,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-                                              
+        
