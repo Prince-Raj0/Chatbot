@@ -2,15 +2,13 @@ import streamlit as st
 from transformers import pipeline
 
 try:
-    pipe = pipeline("text-generation", model="microsoft/Phi-3.5-mini-instruct", trust_remote_code=True)
+    pipe = pipeline("text-generation", model="nvidia/Llama-3.1-Nemotron-70B-Instruct-HF", trust_remote_code=True, device_map="auto") # device_map for potential GPU usage
 except Exception as e:
     st.error(f"Error loading model: {e}")
     st.stop()
 
 def main():
-    st.title("Healthcare Assistant Chatbot (Beta - for informational purposes only)")
-    st.markdown("**Disclaimer:** This chatbot is for informational purposes only and should not be considered medical advice. Always consult with a qualified healthcare professional for any health concerns.")
-
+    st.title("Healthcare Assistant Chatbot")
     user_input = st.text_input("How can I assist you today?", "")
 
     if st.button("Submit"):
@@ -36,4 +34,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
+    
