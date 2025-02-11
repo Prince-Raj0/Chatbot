@@ -3,7 +3,6 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import nltk
 import os
 import tempfile
-import torch  # Explicit PyTorch import
 
 # 1. NLTK Data Path (using tempfile)
 try:
@@ -75,8 +74,11 @@ def healthcare_chatbot(user_input):
 
 # 5. Streamlit Web App
 def main():
-    # Force torch import *after* Streamlit initializes:
-    import torch  # This is the CRUCIAL ADDITION for Streamlit Cloud
+    # Callback to import torch *after* Streamlit is ready:
+    def _import_torch():
+        import torch  # This is the DEFINITIVE solution
+
+    st.experimental_rerun_on_cache_change(_import_torch) # Force the import with caching.
 
     st.title("Healthcare Assistant Chatbot")
 
@@ -94,4 +96,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
+    
