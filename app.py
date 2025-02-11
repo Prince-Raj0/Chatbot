@@ -1,5 +1,5 @@
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline  # PyTorch version
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import nltk
 import os
 import tempfile
@@ -35,6 +35,9 @@ def load_mistral_model():
         return None
 
     try:
+        # Import torch ONLY inside this function:
+        import torch  # This is crucial
+
         tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-Small-24B-Instruct-2501", token=HF_AUTH_TOKEN)
         model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-Small-24B-Instruct-2501", device_map="auto", torch_dtype=torch.bfloat16, token=HF_AUTH_TOKEN)
         pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto", torch_dtype=torch.bfloat16)
@@ -54,11 +57,11 @@ def healthcare_chatbot(user_input):
         messages = [{"role": "user", "content": user_input}]
         response = mistral_pipe(messages, max_new_tokens=300)
 
-        if isinstance(response, list) and len(response) > 0 and 'generated_text' in response:
-            generated_text = response['generated_text']
+        if isinstance(response, list) and len(response) > 0 and 'generated_text' in response[0]:
+            generated_text = response[0]['generated_text']
             return generated_text
-        elif isinstance(response, list) and len(response) > 0 and isinstance(response, dict) and 'generated_text' in response:
-            generated_text = response['generated_text']
+        elif isinstance(response, list) and len(response) > 0 and isinstance(response[0], dict) and 'generated_text' in response[0]:
+            generated_text = response[0]['generated_text']
             return generated_text
         elif isinstance(response, str):
             return response
@@ -72,6 +75,9 @@ def healthcare_chatbot(user_input):
 
 # 5. Streamlit Web App
 def main():
+    # Force torch import *after* Streamlit initializes:
+    import torch  # This is the CRUCIAL ADDITION for Streamlit Cloud
+
     st.title("Healthcare Assistant Chatbot")
 
     user_input = st.text_area("How can I assist you today?", "")
@@ -88,4 +94,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-        
+
