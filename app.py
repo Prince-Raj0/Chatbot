@@ -2,7 +2,7 @@ import streamlit as st
 from transformers import pipeline
 
 try:
-    pipe = pipeline("text-generation", model="mistralai/Mistral-Small-24B-Instruct-2501")
+    pipe = pipeline("text-generation", model="microsoft/Phi-3.5-mini-instruct", trust_remote_code=True)
 except Exception as e:
     st.error(f"Error loading model: {e}")
     st.stop()
@@ -19,14 +19,13 @@ def main():
 
             with st.spinner("Processing your query, please wait..."):
                 try:
-                    messages = [{"role": "user", "content": user_input}]  # Correct format for Mistral
+                    messages = [{"role": "user", "content": user_input}]
                     response = pipe(messages, max_length=500, num_return_sequences=1)
 
                     if response:
-                      st.write("Healthcare Assistant: ", response[0]['generated_text'])
+                        st.write("Healthcare Assistant: ", response[0]['generated_text'])
                     else:
-                      st.write("Healthcare Assistant: No response generated.")
-
+                        st.write("Healthcare Assistant: No response generated.")
 
                 except Exception as e:
                     st.error(f"Error generating response: {e}")
