@@ -3,6 +3,12 @@ import nltk
 import os
 import tempfile
 
+# Dummy torch import (within try-except)
+try:
+    import torch
+except RuntimeError:  # Catch the specific error
+    pass  # Do nothing.
+
 # 1. NLTK Data Path (using tempfile)
 try:
     NLTK_DATA_PATH = os.path.join(tempfile.gettempdir(), "nltk_data")
@@ -34,8 +40,8 @@ def load_mistral_model():
 
     try:
         # Import transformers and torch ONLY inside this function:
-        from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline  # Import here!
-        import torch  # Import here!
+        from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+        import torch  # The actual import happens here
 
         tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-Small-24B-Instruct-2501", token=HF_AUTH_TOKEN)
         model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-Small-24B-Instruct-2501", device_map="auto", torch_dtype=torch.bfloat16, token=HF_AUTH_TOKEN)
@@ -90,4 +96,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
+        
