@@ -3,12 +3,6 @@ import nltk
 import os
 import tempfile
 
-# Dummy torch import (within try-except)
-try:
-    import torch
-except RuntimeError:  # Catch the specific error
-    pass  # Do nothing.
-
 # 1. NLTK Data Path (using tempfile)
 try:
     NLTK_DATA_PATH = os.path.join(tempfile.gettempdir(), "nltk_data")
@@ -29,17 +23,24 @@ except LookupError:
         nltk.download('punkt', download_dir=NLTK_DATA_PATH)
         nltk.download('stopwords', download_dir=NLTK_DATA_PATH)
 
-# 3. Load Llama model (using st.secrets)
+# Dummy torch import (within try-except)
+try:
+    import torch
+except RuntimeError:
+    pass
+
 @st.cache_resource
 def load_llama_model():
     HF_AUTH_TOKEN = st.secrets.get("HF_AUTH_TOKEN")
+
+    # Debugging: Print token and length (REMOVE AFTER TESTING)
+    st.write(f"HF_AUTH_TOKEN: '{HF_AUTH_TOKEN}' (len: {len(HF_AUTH_TOKEN) if HF_AUTH_TOKEN else 0})")
 
     if not HF_AUTH_TOKEN:
         st.error("HF_AUTH_TOKEN secret not found or incorrect. Please set it in Streamlit Cloud (no spaces!).")
         return None
 
     try:
-        # Import transformers and torch ONLY inside this function:
         from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
         import torch
 
@@ -53,21 +54,19 @@ def load_llama_model():
 
 llama_pipe = load_llama_model()
 
-
-# 4. Chatbot Logic (using Llama)
 def chatbot(user_input):
     if llama_pipe is None:
         return "Sorry, the model is not loaded. Please try again later."
 
     try:
-        messages = [{"role": "user", "content": user_input}]  # Format as messages for Llama
+        messages = [{"role": "user", "content": user_input}]
         response = llama_pipe(messages, max_new_tokens=300)
 
-        if isinstance(response, list) and len(response) > 0 and 'generated_text' in response[0]:
-            generated_text = response[0]['generated_text']
+        if isinstance(response, list) and len(response) > 0 and 'generated_text' in response:
+            generated_text = response['generated_text']
             return generated_text
-        elif isinstance(response, list) and len(response) > 0 and isinstance(response[0], dict) and 'generated_text' in response[0]:
-            generated_text = response[0]['generated_text']
+        elif isinstance(response, list) and len(response) > 0 and isinstance(response, dict) and 'generated_text' in response:
+            generated_text = response['generated_text']
             return generated_text
         elif isinstance(response, str):
             return response
@@ -78,8 +77,6 @@ def chatbot(user_input):
         st.error(f"Error generating response: {e}")
         return "I encountered an error. Please try again."
 
-
-# 5. Streamlit Web App
 def main():
     st.title("Llama 2 Chatbot")
 
@@ -94,7 +91,6 @@ def main():
         else:
             st.write("Please enter a query.")
 
-
 if __name__ == "__main__":
     main()
-
+    
