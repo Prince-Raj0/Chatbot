@@ -2,9 +2,7 @@ import streamlit as st
 import nltk
 import os
 import tempfile
-import torch  # Import torch
-
-from transformers import LlamaConfig, AutoTokenizer, AutoModelForCausalLM, pipeline
+import importlib  # For dynamic import
 
 # 1. NLTK Data Path (using tempfile)
 try:
@@ -35,6 +33,11 @@ def load_llama_model():
         return None
 
     try:
+        # Dynamic import of torch within the function
+        torch = importlib.import_module("torch")
+
+        from transformers import LlamaConfig, AutoTokenizer, AutoModelForCausalLM, pipeline
+
         model_name = "meta-llama/Llama-3.1-8B-Instruct"  # Correct model name
 
         config = LlamaConfig.from_pretrained(model_name, token=HF_AUTH_TOKEN)
@@ -57,11 +60,11 @@ def chatbot(user_input):
         messages = [{"role": "user", "content": user_input}]
         response = llama_pipe(messages, max_new_tokens=300)
 
-        if isinstance(response, list) and len(response) > 0 and 'generated_text' in response:
-            generated_text = response['generated_text']
+        if isinstance(response, list) and len(response) > 0 and 'generated_text' in response[0]:
+            generated_text = response[0]['generated_text']
             return generated_text
-        elif isinstance(response, list) and len(response) > 0 and isinstance(response, dict) and 'generated_text' in response:
-            generated_text = response['generated_text']
+        elif isinstance(response, list) and len(response) > 0 and isinstance(response[0], dict) and 'generated_text' in response[0]:
+            generated_text = response[0]['generated_text']
             return generated_text
         elif isinstance(response, str):
             return response
