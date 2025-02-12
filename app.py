@@ -37,8 +37,7 @@ def load_llama_model():
     try:
         from transformers import pipeline, AutoTokenizer, TFAutoModelForCausalLM
 
-        # Updated Model name
-        model_name = "meta-llama/Llama-3.1-8B-Instruct"
+        model_name = "meta-llama/Llama-3.1-8B-Instruct"  # Correct model name
 
         tokenizer = AutoTokenizer.from_pretrained(model_name, token=HF_AUTH_TOKEN)
         model = TFAutoModelForCausalLM.from_pretrained(model_name, token=HF_AUTH_TOKEN)
@@ -75,7 +74,7 @@ def chatbot(user_input):
         return "I encountered an error. Please try again."
 
 def main():
-    st.title("Llama 3.1 Chatbot")  # Updated title
+    st.title("Health Assistant Chatbot")  # Updated title
 
     user_input = st.text_area("How can I assist you today?", "")
 
@@ -84,10 +83,10 @@ def main():
             st.write("User: ", user_input)
             with st.spinner("Generating response..."):
                 response = chatbot(user_input)
-                st.write("Llama 3.1 Assistant: ", response)  # Updated assistant name
+                st.write("Health Assistant: ", response)  # Updated assistant name
         else:
             st.write("Please enter a query.")
 
 if __name__ == "__main__":
     main()
-
+        
