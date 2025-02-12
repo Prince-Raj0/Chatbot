@@ -2,7 +2,7 @@ import streamlit as st
 import nltk
 import os
 import tempfile
-import tensorflow as tf  # Import TensorFlow
+import tensorflow as tf
 
 # 1. NLTK Data Path (using tempfile)
 try:
@@ -24,25 +24,25 @@ except LookupError:
         nltk.download('punkt', download_dir=NLTK_DATA_PATH)
         nltk.download('stopwords', download_dir=NLTK_DATA_PATH)
 
-
 @st.cache_resource
 def load_llama_model():
     HF_AUTH_TOKEN = st.secrets.get("HF_AUTH_TOKEN")
 
-    # Debugging: Print token and length (REMOVE AFTER TESTING)
-    st.write(f"HF_AUTH_TOKEN: '{HF_AUTH_TOKEN}' (len: {len(HF_AUTH_TOKEN) if HF_AUTH_TOKEN else 0})")
+    st.write(f"HF_AUTH_TOKEN: '{HF_AUTH_TOKEN}' (len: {len(HF_AUTH_TOKEN) if HF_AUTH_TOKEN else 0})")  # Debugging
 
     if not HF_AUTH_TOKEN:
         st.error("HF_AUTH_TOKEN secret not found or incorrect. Please set it in Streamlit Cloud (no spaces!).")
         return None
 
     try:
-        from transformers import pipeline, AutoTokenizer, TFAutoModelForCausalLM  # TensorFlow version
-        # No torch import needed
+        from transformers import pipeline, AutoTokenizer, TFAutoModelForCausalLM
 
-        tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf", token=HF_AUTH_TOKEN)
-        model = TFAutoModelForCausalLM.from_pretrained("meta-llama/Llama-2-7b-chat-hf", token=HF_AUTH_TOKEN)  # TensorFlow version
-        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)  # No device_map or torch_dtype for TensorFlow
+        # Updated Model name
+        model_name = "meta-llama/Llama-3.1-8B-Instruct"
+
+        tokenizer = AutoTokenizer.from_pretrained(model_name, token=HF_AUTH_TOKEN)
+        model = TFAutoModelForCausalLM.from_pretrained(model_name, token=HF_AUTH_TOKEN)
+        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
         return pipe
     except Exception as e:
@@ -50,7 +50,6 @@ def load_llama_model():
         return None
 
 llama_pipe = load_llama_model()
-
 
 def chatbot(user_input):
     if llama_pipe is None:
@@ -75,9 +74,8 @@ def chatbot(user_input):
         st.error(f"Error generating response: {e}")
         return "I encountered an error. Please try again."
 
-
 def main():
-    st.title("Health Assistant Chatbot")
+    st.title("Llama 3.1 Chatbot")  # Updated title
 
     user_input = st.text_area("How can I assist you today?", "")
 
@@ -86,10 +84,9 @@ def main():
             st.write("User: ", user_input)
             with st.spinner("Generating response..."):
                 response = chatbot(user_input)
-                st.write("Llama 2 Assistant: ", response)
+                st.write("Llama 3.1 Assistant: ", response)  # Updated assistant name
         else:
             st.write("Please enter a query.")
-
 
 if __name__ == "__main__":
     main()
