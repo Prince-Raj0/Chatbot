@@ -3,6 +3,7 @@ import nltk
 import os
 import tempfile
 import tensorflow as tf
+from transformers import LlamaConfig  # Import LlamaConfig
 
 # 1. NLTK Data Path (using tempfile)
 try:
@@ -28,8 +29,6 @@ except LookupError:
 def load_llama_model():
     HF_AUTH_TOKEN = st.secrets.get("HF_AUTH_TOKEN")
 
-    st.write(f"HF_AUTH_TOKEN: '{HF_AUTH_TOKEN}' (len: {len(HF_AUTH_TOKEN) if HF_AUTH_TOKEN else 0})")  # Debugging
-
     if not HF_AUTH_TOKEN:
         st.error("HF_AUTH_TOKEN secret not found or incorrect. Please set it in Streamlit Cloud (no spaces!).")
         return None
@@ -39,8 +38,11 @@ def load_llama_model():
 
         model_name = "meta-llama/Llama-3.1-8B-Instruct"  # Correct model name
 
+        # Load configuration separately
+        config = LlamaConfig.from_pretrained(model_name, token=HF_AUTH_TOKEN)
+
         tokenizer = AutoTokenizer.from_pretrained(model_name, token=HF_AUTH_TOKEN)
-        model = TFAutoModelForCausalLM.from_pretrained(model_name, token=HF_AUTH_TOKEN)
+        model = TFAutoModelForCausalLM.from_pretrained(model_name, config=config, token=HF_AUTH_TOKEN)  # Pass config here
         pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
         return pipe
@@ -89,4 +91,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-        
+    
