@@ -3,6 +3,12 @@ import nltk
 import os
 import tempfile
 
+# Dummy torch import (within try-except)
+try:
+    import torch
+except RuntimeError:  # Catch the specific error
+    pass  # Do nothing.
+
 # 1. NLTK Data Path (using tempfile)
 try:
     NLTK_DATA_PATH = os.path.join(tempfile.gettempdir(), "nltk_data")
@@ -23,12 +29,6 @@ except LookupError:
         nltk.download('punkt', download_dir=NLTK_DATA_PATH)
         nltk.download('stopwords', download_dir=NLTK_DATA_PATH)
 
-# Dummy torch import (within try-except)
-try:
-    import torch
-except RuntimeError:  # Catch the specific error
-    pass  # Do nothing.
-
 # 3. Load Llama model (using st.secrets)
 @st.cache_resource
 def load_llama_model():
@@ -43,7 +43,7 @@ def load_llama_model():
         from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
         import torch
 
-        tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf", token=HF_AUTH_TOKEN)  # Updated model name
+        tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf", token=HF_AUTH_TOKEN)
         model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-2-7b-chat-hf", device_map="auto", torch_dtype=torch.bfloat16, token=HF_AUTH_TOKEN)
         pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto", torch_dtype=torch.bfloat16)
         return pipe
@@ -81,7 +81,7 @@ def chatbot(user_input):
 
 # 5. Streamlit Web App
 def main():
-    st.title("Llama 2 Chatbot") # Updated title
+    st.title("Llama 2 Chatbot")
 
     user_input = st.text_area("How can I assist you today?", "")
 
@@ -89,8 +89,8 @@ def main():
         if user_input:
             st.write("User: ", user_input)
             with st.spinner("Generating response..."):
-                response = chatbot(user_input)  # Updated function name
-                st.write("Llama 2 Assistant: ", response) # Updated assistant name
+                response = chatbot(user_input)
+                st.write("Llama 2 Assistant: ", response)
         else:
             st.write("Please enter a query.")
 
