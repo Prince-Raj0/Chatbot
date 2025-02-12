@@ -2,6 +2,7 @@ import streamlit as st
 import nltk
 import os
 import tempfile
+import tensorflow as tf  # Import TensorFlow
 
 # 1. NLTK Data Path (using tempfile)
 try:
@@ -23,11 +24,6 @@ except LookupError:
         nltk.download('punkt', download_dir=NLTK_DATA_PATH)
         nltk.download('stopwords', download_dir=NLTK_DATA_PATH)
 
-# Dummy torch import (within try-except)
-try:
-    import torch
-except RuntimeError:
-    pass
 
 @st.cache_resource
 def load_llama_model():
@@ -41,18 +37,20 @@ def load_llama_model():
         return None
 
     try:
-        from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
-        import torch
+        from transformers import pipeline, AutoTokenizer, TFAutoModelForCausalLM  # TensorFlow version
+        # No torch import needed
 
-        tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf", token=HF_AUTH_TOKEN) # Model name updated
-        model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-2-7b-chat-hf", device_map="auto", torch_dtype=torch.bfloat16, token=HF_AUTH_TOKEN) # Model name updated
-        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto", torch_dtype=torch.bfloat16)
+        tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf", token=HF_AUTH_TOKEN)
+        model = TFAutoModelForCausalLM.from_pretrained("meta-llama/Llama-2-7b-chat-hf", token=HF_AUTH_TOKEN)  # TensorFlow version
+        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)  # No device_map or torch_dtype for TensorFlow
+
         return pipe
     except Exception as e:
         st.error(f"Error loading Llama model: {e}")
         return None
 
 llama_pipe = load_llama_model()
+
 
 def chatbot(user_input):
     if llama_pipe is None:
@@ -77,6 +75,7 @@ def chatbot(user_input):
         st.error(f"Error generating response: {e}")
         return "I encountered an error. Please try again."
 
+
 def main():
     st.title("Health Assistant Chatbot")
 
@@ -90,6 +89,7 @@ def main():
                 st.write("Llama 2 Assistant: ", response)
         else:
             st.write("Please enter a query.")
+
 
 if __name__ == "__main__":
     main()
