@@ -2,8 +2,9 @@ import streamlit as st
 import nltk
 import os
 import tempfile
-import tensorflow as tf
-from transformers import LlamaConfig  # Import LlamaConfig
+import torch  # Import torch
+
+from transformers import LlamaConfig, AutoTokenizer, AutoModelForCausalLM, pipeline
 
 # 1. NLTK Data Path (using tempfile)
 try:
@@ -34,16 +35,12 @@ def load_llama_model():
         return None
 
     try:
-        from transformers import pipeline, AutoTokenizer, TFAutoModelForCausalLM
-
         model_name = "meta-llama/Llama-3.1-8B-Instruct"  # Correct model name
 
-        # Load configuration separately
         config = LlamaConfig.from_pretrained(model_name, token=HF_AUTH_TOKEN)
-
         tokenizer = AutoTokenizer.from_pretrained(model_name, token=HF_AUTH_TOKEN)
-        model = TFAutoModelForCausalLM.from_pretrained(model_name, config=config, token=HF_AUTH_TOKEN)  # Pass config here
-        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+        model = AutoModelForCausalLM.from_pretrained(model_name, config=config, device_map="auto", torch_dtype=torch.bfloat16, token=HF_AUTH_TOKEN)
+        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto", torch_dtype=torch.bfloat16)
 
         return pipe
     except Exception as e:
@@ -60,11 +57,11 @@ def chatbot(user_input):
         messages = [{"role": "user", "content": user_input}]
         response = llama_pipe(messages, max_new_tokens=300)
 
-        if isinstance(response, list) and len(response) > 0 and 'generated_text' in response[0]:
-            generated_text = response[0]['generated_text']
+        if isinstance(response, list) and len(response) > 0 and 'generated_text' in response:
+            generated_text = response['generated_text']
             return generated_text
-        elif isinstance(response, list) and len(response) > 0 and isinstance(response[0], dict) and 'generated_text' in response[0]:
-            generated_text = response[0]['generated_text']
+        elif isinstance(response, list) and len(response) > 0 and isinstance(response, dict) and 'generated_text' in response:
+            generated_text = response['generated_text']
             return generated_text
         elif isinstance(response, str):
             return response
@@ -91,4 +88,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
+
